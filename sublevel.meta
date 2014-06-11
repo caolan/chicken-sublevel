@@ -3,4 +3,4 @@
  (category db)
  (license "BSD")
  (needs level interfaces)
- (test-depends test))
+ (test-depends test leveldb lazy-seq))

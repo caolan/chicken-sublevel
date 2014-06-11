@@ -1,4 +1,4 @@
-(use sublevel level leveldb posix test)
+(use sublevel level leveldb lazy-seq posix test)
 
 ; attempting to open db that doesn't exist
 (if (directory? "testdb")
@@ -38,6 +38,15 @@
   (test "get foo back from batch" "foo" (db-get db '("three" "one")))
   (test-error "do not get bar back from batch" (db-get db '("three" "two")))
   (test "get baz back from batch" "baz" (db-get db '("three" "three"))))
+
+(test-group "stream keys from a sublevel"
+  (define db4 (sublevel db '("four")))
+  (db-batch db4 '((put "abc" "123")
+                  (put "def" "456")
+                  (put "ghi" "789")))
+  (test "get range keys inside prefix (with prefix removed from results)"
+        '()
+        (db-stream db4 lazy-seq->list start: "a" end: "g")))
 
 
 (test-exit)
