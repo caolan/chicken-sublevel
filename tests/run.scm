@@ -73,11 +73,28 @@
   (test "get range of keys outside prefix"
         '((("four" "abc") "123")
           (("four" "def") "456"))
-        (db-stream db lazy-seq->list start: "a" end: "g")))
-    ;; TODO: test for list style keys returned from streams
-    ;; TODO: test key-only results
-    ;; TODO: test value-only results
-    ;; TODO: test reversed results
-
+        (db-stream db lazy-seq->list start: "a" end: "g"))
+  (db-batch db4 '((put ("a" "b" "c") "123")
+                  (put ("d" "e" "f") "456")))
+  (define db5 (sublevel db '("five")))
+  (test "get list keys from stream"
+        '((("a" "b" "c") "123")
+          (("d" "e" "f") "456"))
+        (db-stream db5 lazy-seq->list))
+  (test "get key only results from stream"
+        '("abc" "def" "ghi" "zzz")
+        (db-stream db4 lazy-seq->list key: #t value: #f))
+  (test "get key only results from stream - list keys"
+        '(("a" "b" "c") ("d" "e" "f"))
+        (db-stream db5 lazy-seq->list key: #t value: #f))
+  (test "get value only results from stream"
+        '("123" "456" "789" "000")
+        (db-stream db4 lazy-seq->list key: #f value: #t))
+  (test "get value only results from stream - list keys"
+        '("123" "456")
+        (db-stream db5 lazy-seq->list key: #f value: #t))
+  (test "get all keys inside prefix reversed"
+        '(("zzz" "000") ("ghi" "789") ("def" "456") ("abc" "123"))
+        (db-stream db4 lazy-seq->list reverse: #t)))
 
 (test-exit)
