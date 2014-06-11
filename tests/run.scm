@@ -37,7 +37,13 @@
   (test "get baz back from batch" "baz" (db-get db3 "three"))
   (test "get foo back from batch" "foo" (db-get db '("three" "one")))
   (test-error "do not get bar back from batch" (db-get db '("three" "two")))
-  (test "get baz back from batch" "baz" (db-get db '("three" "three"))))
+  (test "get baz back from batch" "baz" (db-get db '("three" "three")))
+  (test "put list key values using batch" #t
+        (db-batch db3 '((put ("a" "b" "c") "123")
+                        (put ("d" "e" "f") "456")
+                        (delete ("d" "e" "f")))))
+  (test "get (a b c) back from batch" "123" (db-get db3 '("a" "b" "c")))
+  (test-error "do not get (d e f) back from batch" (db-get db3 '("d" "e" "f"))))
 
 (test-group "stream keys from a sublevel"
   (define db4 (sublevel db '("four")))
@@ -53,7 +59,25 @@
         (db-stream db4 lazy-seq->list limit: 2))
   (test "get range of keys inside prefix"
         '(("abc" "123") ("def" "456"))
-        (db-stream db4 lazy-seq->list start: "a" end: "g")))
+        (db-stream db4 lazy-seq->list start: "a" end: "g"))
+  (test "get all keys outsdie prefix"
+        '((("four" "abc") "123")
+          (("four" "def") "456")
+          (("four" "ghi") "789")
+          (("four" "zzz") "000"))
+        (db-stream db lazy-seq->list))
+  (test "get limited keys outside prefix"
+        '((("four" "abc") "123")
+          (("four" "def") "456"))
+        (db-stream db lazy-seq->list limit: 2))
+  (test "get range of keys outside prefix"
+        '((("four" "abc") "123")
+          (("four" "def") "456"))
+        (db-stream db lazy-seq->list start: "a" end: "g")))
+    ;; TODO: test for list style keys returned from streams
+    ;; TODO: test key-only results
+    ;; TODO: test value-only results
+    ;; TODO: test reversed results
 
 
 (test-exit)
