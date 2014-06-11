@@ -10,6 +10,12 @@
   (string-join (append prefix (if (list? key) key (list key)))
                delimiter))
 
+;; converts the key part of an operation to a string
+(define (convert-key prefix op)
+  (if (eq? (length op) 3)
+    (list (car op) (key->string prefix (cadr op)) (caddr op))
+    (list (car op) (key->string prefix (cadr op)))))
+
 (define resource->prefix car)
 (define resource->db cdr)
 
@@ -33,7 +39,9 @@
                  sync: sync))
 
     (define (batch resource ops #!key (sync #f))
-      (db-batch (resource->db resource) ops sync: sync))
+      (db-batch (resource->db resource)
+                (map (cut convert-key (resource->prefix resource) <>) ops)
+                sync: sync))
 
     (define (stream resource
                     thunk

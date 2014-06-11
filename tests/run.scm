@@ -35,9 +35,9 @@
   (test "get foo back from batch" "foo" (db-get db3 "one"))
   (test-error "do not get bar back from batch" (db-get db3 "two"))
   (test "get baz back from batch" "baz" (db-get db3 "three"))
-  (test "get foo back from batch" "foo" (db-get db ("three" "one")))
-  (test-error "do not get bar back from batch" (db-get db ("three" "two")))
-  (test "get baz back from batch" "baz" (db-get db ("three" "three"))))
+  (test "get foo back from batch" "foo" (db-get db '("three" "one")))
+  (test-error "do not get bar back from batch" (db-get db '("three" "two")))
+  (test "get baz back from batch" "baz" (db-get db '("three" "three"))))
 
 
 (test-exit)
