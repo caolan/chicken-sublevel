@@ -43,9 +43,16 @@
   (define db4 (sublevel db '("four")))
   (db-batch db4 '((put "abc" "123")
                   (put "def" "456")
-                  (put "ghi" "789")))
-  (test "get range keys inside prefix (with prefix removed from results)"
-        '()
+                  (put "ghi" "789")
+                  (put "zzz" "000")))
+  (test "get all keys inside prefix"
+        '(("abc" "123") ("def" "456") ("ghi" "789") ("zzz" "000"))
+        (db-stream db4 lazy-seq->list))
+  (test "get limited keys inside prefix"
+        '(("abc" "123") ("def" "456"))
+        (db-stream db4 lazy-seq->list limit: 2))
+  (test "get range of keys inside prefix"
+        '(("abc" "123") ("def" "456"))
         (db-stream db4 lazy-seq->list start: "a" end: "g")))
 
 
