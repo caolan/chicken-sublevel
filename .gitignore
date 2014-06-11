@@ -1,0 +1,7 @@
+/*.o
+/*.so
+/sublevel-static.cpp
+/sublevel.cpp
+/sublevel.import.c
+/sublevel.import.scm
+/testdb

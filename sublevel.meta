@@ -1,0 +1,6 @@
+((synopsis "Namespaced access to leveldb implementations")
+ (author "Caolan McMahon")
+ (category db)
+ (license "BSD")
+ (needs level interfaces)
+ (test-depends test))
