@@ -65,15 +65,12 @@
         (db-stream db lazy-seq->list start: "four\x00a" end: "four\x00g"))
   (test "get key only results from stream"
         '("abc" "def" "ghi" "zzz")
-        (db-stream db4 lazy-seq->list key: #t value: #f)))
-  ;(test "get value only results from stream"
-  ;      '("123" "456" "789" "000")
-  ;      (db-stream db4 lazy-seq->list key: #f value: #t))
-  ;(test "get value only results from stream - list keys"
-  ;      '("123" "456")
-  ;      (db-stream db5 lazy-seq->list key: #f value: #t))
-  ;(test "get all keys inside prefix reversed"
-  ;      '(("zzz" "000") ("ghi" "789") ("def" "456") ("abc" "123"))
-  ;      (db-stream db4 lazy-seq->list reverse: #t)))
+        (db-stream db4 lazy-seq->list key: #t value: #f))
+  (test "get value only results from stream"
+        '("123" "456" "789" "000")
+        (db-stream db4 lazy-seq->list key: #f value: #t))
+  (test "get all keys inside prefix reversed"
+        '(("zzz" "000") ("ghi" "789") ("def" "456") ("abc" "123"))
+        (db-stream db4 lazy-seq->list reverse: #t)))
 
 (test-exit)

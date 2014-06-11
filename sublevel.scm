@@ -26,6 +26,7 @@
   (if (list? key) key (split-key key)))
 
 (define (remove-prefix prefix key)
+  (printf "remove-prefix: ~S ~S~n" prefix key)
   (define (without-prefix a b)
     (if (null? a)
       (string-join b delimiter)
@@ -34,16 +35,19 @@
         key)))
   (without-prefix prefix (key->list key)))
 
-(define (process-stream prefix seq)
+(define (process-stream key value prefix seq)
   (lazy-map 
     (lambda (x)
-      (process-stream-item prefix x))
+      (process-stream-item key value prefix x))
     seq))
 
-(define (process-stream-item prefix x)
-  (let* ([key (key->list (car x))]
-         [val (cadr x)])
-    (list (remove-prefix prefix key) val)))
+(define (process-stream-item key value prefix x)
+  (printf "process-stream-item: ~S ~S~n" prefix x)
+  (cond [(and key value)
+         (let ([k (key->list (car x))] [v (cadr x)])
+           (list (remove-prefix prefix k) v))]
+        [key (remove-prefix prefix (key->list x))]
+        [value x]))
 
 (define sublevel-implementation
   (implementation level-api
@@ -87,7 +91,7 @@
                      delimiter)])
         (db-stream (resource->db resource)
                    (lambda (seq)
-                     (thunk (process-stream prefix seq)))
+                     (thunk (process-stream key value prefix seq)))
                    start: start2
                    end: end2 
                    limit: limit
