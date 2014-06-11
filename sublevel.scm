@@ -22,8 +22,17 @@
 (define (split-key key)
   (irregex-split delimiter key))
 
-(define (remove-prefix prefix listkey)
-  (drop listkey (length prefix)))
+(define (key->list key)
+  (if (list? key) key (split-key key)))
+
+(define (remove-prefix prefix key)
+  (define (without-prefix a b)
+    (if (null? a)
+      (string-join b delimiter)
+      (if (string=? (car a) (car b))
+        (without-prefix (cdr a) (cdr b))
+        key)))
+  (without-prefix prefix (key->list key)))
 
 (define (process-stream prefix seq)
   (lazy-map 
@@ -32,12 +41,9 @@
     seq))
 
 (define (process-stream-item prefix x)
-  (printf "~S~n" x)
-  (let* ([rawkey (car x)]
-         [key (if (list? rawkey) rawkey (split-key rawkey))]
+  (let* ([key (key->list (car x))]
          [val (cadr x)])
-    (list (remove-prefix prefix key)
-          val)))
+    (list (remove-prefix prefix key) val)))
 
 (define sublevel-implementation
   (implementation level-api
@@ -72,19 +78,23 @@
                     (key #t)
                     (value #t)
                     fillcache)
-      (db-stream (resource->db resource)
-                 (lambda (seq)
-                   (thunk
-                     (process-stream
-                       (resource->prefix resource)
-                       seq)))
-                 start: start
-                 end: end
-                 limit: limit
-                 reverse: reverse
-                 key: key
-                 value: value
-                 fillcache: fillcache))))
+      (let* ([prefix (resource->prefix resource)]
+             [start2 (string-join
+                       (append prefix (if start (list start) '()))
+                       delimiter)]
+             [end2 (string-join
+                     (append prefix (if end (list end "\xff") (list "\xff")))
+                     delimiter)])
+        (db-stream (resource->db resource)
+                   (lambda (seq)
+                     (thunk (process-stream prefix seq)))
+                   start: start2
+                   end: end2 
+                   limit: limit
+                   reverse: reverse
+                   key: key
+                   value: value
+                   fillcache: fillcache)))))
 
 (define (sublevel db prefix)
   (make-level sublevel-implementation (cons prefix db))))
