@@ -1,7 +1,7 @@
 (module sublevel (sublevel)
 
 (import scheme chicken)
-(use level interfaces srfi-13)
+(use level interfaces srfi-1 srfi-13 lazy-seq irregex)
 
 
 (define delimiter "\x00") ;; nul character
@@ -19,6 +19,25 @@
 (define resource->prefix car)
 (define resource->db cdr)
 
+(define (split-key key)
+  (irregex-split delimiter key))
+
+(define (remove-prefix prefix listkey)
+  (drop listkey (length prefix)))
+
+(define (process-stream prefix seq)
+  (lazy-map 
+    (lambda (x)
+      (process-stream-item prefix x))
+    seq))
+
+(define (process-stream-item prefix x)
+  (printf "~S~n" x)
+  (let* ([rawkey (car x)]
+         [key (if (list? rawkey) rawkey (split-key rawkey))]
+         [val (cadr x)])
+    (list (remove-prefix prefix key)
+          val)))
 
 (define sublevel-implementation
   (implementation level-api
@@ -54,8 +73,12 @@
                     (value #t)
                     fillcache)
       (db-stream (resource->db resource)
-                 thunk
-                 start: start ;; TODO: add prefix to start/end with tests
+                 (lambda (seq)
+                   (thunk
+                     (process-stream
+                       (resource->prefix resource)
+                       seq)))
+                 start: start
                  end: end
                  limit: limit
                  reverse: reverse

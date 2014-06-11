@@ -2,5 +2,5 @@
  (author "Caolan McMahon")
  (category db)
  (license "BSD")
- (needs level interfaces)
- (test-depends test leveldb lazy-seq))
+ (needs level interfaces lazy-seq)
+ (test-depends test leveldb))
