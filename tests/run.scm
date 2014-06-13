@@ -71,6 +71,9 @@
         (db-stream db4 lazy-seq->list key: #f value: #t))
   (test "get all keys inside prefix reversed"
         '(("zzz" "000") ("ghi" "789") ("def" "456") ("abc" "123"))
-        (db-stream db4 lazy-seq->list reverse: #t)))
+        (db-stream db4 lazy-seq->list reverse: #t))
+  (test "get range of keys inside prefix reversed"
+        '(("ghi" "789") ("def" "456"))
+        (db-stream db4 lazy-seq->list reverse: #t start: "gxx" end: "d")))
 
 (test-exit)
