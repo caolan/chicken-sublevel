@@ -26,7 +26,6 @@
   (if (list? key) key (split-key key)))
 
 (define (remove-prefix prefix key)
-  (printf "remove-prefix: ~S ~S~n" prefix key)
   (define (without-prefix a b)
     (if (null? a)
       (string-join b delimiter)
@@ -42,12 +41,51 @@
     seq))
 
 (define (process-stream-item key value prefix x)
-  (printf "process-stream-item: ~S ~S~n" prefix x)
   (cond [(and key value)
          (let ([k (key->list (car x))] [v (cadr x)])
            (list (remove-prefix prefix k) v))]
         [key (remove-prefix prefix (key->list x))]
         [value x]))
+
+(define (make-startkey prefix start #!key (reverse #f))
+  (if (null? prefix)
+    start
+    (if start
+      (if reverse
+        (string-join
+          (append prefix (if start (list start) '()))
+          delimiter)
+        (string-join
+          (append prefix (if start (list start) '()))
+          delimiter))
+      (if reverse
+        (string-append
+          (string-join prefix delimiter)
+          delimiter
+          "\xff")
+        (string-append
+          (string-join prefix delimiter)
+          delimiter)))))
+
+(define (make-endkey prefix end #!key (reverse #f))
+  (if (null? prefix)
+    end
+    (if end
+      (if reverse
+        (string-join
+          (append prefix (if end (list end) '()))
+          delimiter)
+        (string-join
+          (append prefix (if end (list end) '()))
+          delimiter))
+      (if reverse
+        (string-append
+          (string-join prefix delimiter)
+          delimiter)
+        (string-append
+          (string-join prefix delimiter)
+          delimiter
+          "\xff")))))
 
 (define sublevel-implementation
   (implementation level-api
@@ -83,12 +121,8 @@
                     (value #t)
                     fillcache)
       (let* ([prefix (resource->prefix resource)]
-             [start2 (string-join
-                       (append prefix (if start (list start) '()))
-                       delimiter)]
-             [end2 (string-join
-                     (append prefix (if end (list end "\xff") (list "\xff")))
-                     delimiter)])
+             [start2 (make-startkey prefix start reverse: reverse)]
+             [end2 (make-endkey prefix end reverse: reverse)])
         (db-stream (resource->db resource)
                    (lambda (seq)
                      (thunk (process-stream key value prefix seq)))
