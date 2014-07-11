@@ -111,7 +111,6 @@
                 sync: sync))
 
     (define (stream resource
-                    thunk
                     #!key
                     start
                     end
@@ -123,16 +122,15 @@
       (let* ([prefix (resource->prefix resource)]
              [start2 (make-startkey prefix start reverse: reverse)]
              [end2 (make-endkey prefix end reverse: reverse)])
-        (db-stream (resource->db resource)
-                   (lambda (seq)
-                     (thunk (process-stream key value prefix seq)))
-                   start: start2
-                   end: end2 
-                   limit: limit
-                   reverse: reverse
-                   key: key
-                   value: value
-                   fillcache: fillcache)))))
+        (process-stream key value prefix
+          (db-stream (resource->db resource)
+                     start: start2
+                     end: end2 
+                     limit: limit
+                     reverse: reverse
+                     key: key
+                     value: value
+                     fillcache: fillcache))))))
 
 (define (sublevel db prefix)
   (make-level sublevel-implementation (cons prefix db))))
