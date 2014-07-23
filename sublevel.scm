@@ -1,6 +1,8 @@
+(require-extension utf8)
+
 (module sublevel (sublevel)
 
-(import scheme chicken)
+(import utf8 scheme chicken)
 (use level interfaces srfi-1 srfi-13 lazy-seq irregex)
 
 
