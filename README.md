@@ -35,12 +35,14 @@ joining name space strings with the `null` character.
 ### expand-sublevels
 
 ```scheme
-(expand-sublevels db ops)
+(expand-sublevels root db ops)
 ```
 
 Takes a list of operations (as you would pass to the db-batch procedure)
 and expands the keys in the list to match the full key that would be
-written for the provdided sublevel(s).
+written for the provdided sublevel(s). The key namespaces between 'root'
+and 'db' are expanded. The 'root' argument can be any level
+implementation (eg, a raw leveldb object or another sublevel).
 
 This can be useful if you find yourself needing to apply a transaction
 across multiple sublevels. You can use this for each sublevel to build the
@@ -52,6 +54,9 @@ final batch operations list then use db-batch on the underlying resource.
 (define sub1 (sublevel db '("one")))
 (define sub2 (sublevel sub1 '("two")))
 
-(expand-sublevels sub2 '((put "example" "value")))
+(expand-sublevels db sub2 '((put "example" "value")))
 ;; => '((put "one\x00two\x00example" "value"))
+
+(expand-sublevels sub1 sub2 '((put "example" "value")))
+;; => '((put "two\x00example" "value"))
 ```
