@@ -76,4 +76,34 @@
         '(("ghi" "789") ("def" "456"))
         (lazy-seq->list (db-stream db4 reverse: #t start: "gxx" end: "d"))))
 
+(test-group "expand-sublevels"
+  (define db1 (sublevel db '("one")))
+  (test "expand key for single sublevel"
+        '((put "one\x00foo" "123"))
+        (expand-sublevels db1 '((put "foo" "123"))))
+  (test "expand multiple keys for single sublevel"
+        '((put "one\x00foo" "123")
+          (put "one\x00bar" "456")
+          (delete "one\x00baz"))
+        (expand-sublevels
+          db1
+          '((put "foo" "123")
+            (put "bar" "456")
+            (delete "baz"))))
+  (define db2 (sublevel db1 '("two")))
+  (define db3 (sublevel db2 '("three")))
+  (test "expand key for multiple sublevels"
+        '((put "one\x00two\x00three\x00foo" "123"))
+        (expand-sublevels db3 '((put "foo" "123"))))
+  (test "expand multiple keys for multiple sublevels"
+        '((put "one\x00two\x00three\x00foo" "123")
+          (put "one\x00two\x00three\x00bar" "456")
+          (delete "one\x00two\x00three\x00baz"))
+        (expand-sublevels
+          db3
+          '((put "foo" "123")
+            (put "bar" "456")
+            (delete "baz"))))
+  )
+
 (test-exit)

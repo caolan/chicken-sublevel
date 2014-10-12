@@ -1,6 +1,6 @@
 (require-extension utf8)
 
-(module sublevel (sublevel)
+(module sublevel (sublevel expand-sublevels)
 
 (import utf8 scheme chicken)
 (use level interfaces srfi-1 srfi-13 lazy-seq irregex)
@@ -18,9 +18,6 @@
     (list (car op) (key->string prefix (cadr op)) (caddr op))
     (list (car op) (key->string prefix (cadr op)))))
 
-(define resource->prefix car)
-(define resource->db cdr)
-
 (define (split-key key)
   (irregex-split delimiter key))
 
@@ -37,7 +34,7 @@
   (without-prefix prefix (key->list key)))
 
 (define (process-stream key value prefix seq)
-  (lazy-map 
+  (lazy-map
     (lambda (x)
       (process-stream-item key value prefix x))
     seq))
@@ -89,27 +86,29 @@
           delimiter
           "\xff")))))
 
+(define-record sublevel prefix db)
+
 (define sublevel-implementation
   (implementation level-api
 
     (define (get resource key)
-      (db-get (resource->db resource)
-              (key->string (resource->prefix resource) key)))
+      (db-get (sublevel-db resource)
+              (key->string (sublevel-prefix resource) key)))
 
     (define (put resource key value #!key (sync #f))
-      (db-put (resource->db resource)
-              (key->string (resource->prefix resource) key)
+      (db-put (sublevel-db resource)
+              (key->string (sublevel-prefix resource) key)
               value
               sync: sync))
 
     (define (delete resource key #!key (sync #f))
-      (db-delete (resource->db resource)
-                 (key->string (resource->prefix resource) key)
+      (db-delete (sublevel-db resource)
+                 (key->string (sublevel-prefix resource) key)
                  sync: sync))
 
     (define (batch resource ops #!key (sync #f))
-      (db-batch (resource->db resource)
-                (map (cut convert-key (resource->prefix resource) <>) ops)
+      (db-batch (sublevel-db resource)
+                (map (cut convert-key (sublevel-prefix resource) <>) ops)
                 sync: sync))
 
     (define (stream resource
@@ -121,13 +120,13 @@
                     (key #t)
                     (value #t)
                     fillcache)
-      (let* ([prefix (resource->prefix resource)]
+      (let* ([prefix (sublevel-prefix resource)]
              [start2 (make-startkey prefix start reverse: reverse)]
              [end2 (make-endkey prefix end reverse: reverse)])
         (process-stream key value prefix
-          (db-stream (resource->db resource)
+          (db-stream (sublevel-db resource)
                      start: start2
-                     end: end2 
+                     end: end2
                      limit: limit
                      reverse: reverse
                      key: key
@@ -135,4 +134,22 @@
                      fillcache: fillcache))))))
 
 (define (sublevel db prefix)
-  (make-level sublevel-implementation (cons prefix db))))
+  (make-level sublevel-implementation (make-sublevel prefix db)))
+
+(define (full-prefix db)
+  (cond ((level? db)
+         (full-prefix (level-resource db)))
+        ((sublevel? db)
+         (append (full-prefix (sublevel-db db)) (sublevel-prefix db)))
+        (else '())))
+
+(define (expand-sublevels db ops)
+  (let ((prefix (full-prefix db)))
+    (map (lambda (op)
+           (let ((type (car op))
+                 (key (key->string prefix (cadr op)))
+                 (rest (cddr op)))
+             (cons type (cons key rest))))
+         ops)))
+
+)
