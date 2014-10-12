@@ -144,8 +144,8 @@
          (append (full-prefix root (sublevel-db db)) (sublevel-prefix db)))
         (else '())))
 
-(define (expand-sublevels root start ops)
-  (let ((prefix (full-prefix root start)))
+(define (expand-sublevels root db ops)
+  (let ((prefix (full-prefix root db)))
     (map (lambda (op)
            (let ((type (car op))
                  (key (key->string prefix (cadr op)))
