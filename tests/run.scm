@@ -80,13 +80,12 @@
   (define db1 (sublevel db '("one")))
   (test "expand key for single sublevel"
         '((put "one\x00foo" "123"))
-        (expand-sublevels db1 '((put "foo" "123"))))
+        (expand-sublevels db db1 '((put "foo" "123"))))
   (test "expand multiple keys for single sublevel"
         '((put "one\x00foo" "123")
           (put "one\x00bar" "456")
           (delete "one\x00baz"))
-        (expand-sublevels
-          db1
+        (expand-sublevels db db1
           '((put "foo" "123")
             (put "bar" "456")
             (delete "baz"))))
@@ -94,13 +93,20 @@
   (define db3 (sublevel db2 '("three")))
   (test "expand key for multiple sublevels"
         '((put "one\x00two\x00three\x00foo" "123"))
-        (expand-sublevels db3 '((put "foo" "123"))))
+        (expand-sublevels db db3 '((put "foo" "123"))))
   (test "expand multiple keys for multiple sublevels"
         '((put "one\x00two\x00three\x00foo" "123")
           (put "one\x00two\x00three\x00bar" "456")
           (delete "one\x00two\x00three\x00baz"))
-        (expand-sublevels
-          db3
+        (expand-sublevels db db3
+          '((put "foo" "123")
+            (put "bar" "456")
+            (delete "baz"))))
+  (test "expand some but not all sublevels"
+        '((put "two\x00three\x00foo" "123")
+          (put "two\x00three\x00bar" "456")
+          (delete "two\x00three\x00baz"))
+        (expand-sublevels db1 db3
           '((put "foo" "123")
             (put "bar" "456")
             (delete "baz"))))
