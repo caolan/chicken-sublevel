@@ -6,6 +6,7 @@
          sublevel-delimiter
          sublevel-split-key
          expand-sublevels
+         multilevel-expand
          )
 
 (import utf8 scheme chicken)
@@ -158,5 +159,13 @@
                  (rest (cddr op)))
              (cons type (cons key rest))))
          ops)))
+
+(define-syntax multilevel-expand
+  (syntax-rules ()
+    ((_ db) '())
+    ((_ db (s1 o1) (s2 o2) ...)
+     (append
+       (expand-sublevels db s1 o1)
+       (multilevel-expand db (s2 o2) ...)))))
 
 )
