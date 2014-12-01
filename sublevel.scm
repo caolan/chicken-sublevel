@@ -1,16 +1,22 @@
 (require-extension utf8)
 
-(module sublevel (sublevel expand-sublevels)
+(module sublevel
+        (
+         sublevel
+         sublevel-delimiter
+         sublevel-split-key
+         expand-sublevels
+         )
 
 (import utf8 scheme chicken)
 (use level interfaces srfi-1 srfi-13 lazy-seq irregex)
 
 
-(define delimiter "\x00") ;; nul character
+(define sublevel-delimiter "\x00") ;; nul character
 
 (define (key->string prefix key)
   (string-join (append prefix (if (list? key) key (list key)))
-               delimiter))
+               sublevel-delimiter))
 
 ;; converts the key part of an operation to a string
 (define (convert-key prefix op)
@@ -18,16 +24,16 @@
     (list (car op) (key->string prefix (cadr op)) (caddr op))
     (list (car op) (key->string prefix (cadr op)))))
 
-(define (split-key key)
-  (irregex-split delimiter key))
+(define (sublevel-split-key key)
+  (irregex-split sublevel-delimiter key))
 
 (define (key->list key)
-  (if (list? key) key (split-key key)))
+  (if (list? key) key (sublevel-split-key key)))
 
 (define (remove-prefix prefix key)
   (define (without-prefix a b)
     (if (null? a)
-      (string-join b delimiter)
+      (string-join b sublevel-delimiter)
       (if (string=? (car a) (car b))
         (without-prefix (cdr a) (cdr b))
         key)))
@@ -53,18 +59,18 @@
       (if reverse
         (string-join
           (append prefix (if start (list start) '()))
-          delimiter)
+          sublevel-delimiter)
         (string-join
           (append prefix (if start (list start) '()))
-          delimiter))
+          sublevel-delimiter))
       (if reverse
         (string-append
-          (string-join prefix delimiter)
-          delimiter
+          (string-join prefix sublevel-delimiter)
+          sublevel-delimiter
           "\xff")
         (string-append
-          (string-join prefix delimiter)
-          delimiter)))))
+          (string-join prefix sublevel-delimiter)
+          sublevel-delimiter)))))
 
 (define (make-endkey prefix end #!key (reverse #f))
   (if (null? prefix)
@@ -73,17 +79,17 @@
       (if reverse
         (string-join
           (append prefix (if end (list end) '()))
-          delimiter)
+          sublevel-delimiter)
         (string-join
           (append prefix (if end (list end) '()))
-          delimiter))
+          sublevel-delimiter))
       (if reverse
         (string-append
-          (string-join prefix delimiter)
-          delimiter)
+          (string-join prefix sublevel-delimiter)
+          sublevel-delimiter)
         (string-append
-          (string-join prefix delimiter)
-          delimiter
+          (string-join prefix sublevel-delimiter)
+          sublevel-delimiter
           "\xff")))))
 
 (define-record sublevel prefix db)
