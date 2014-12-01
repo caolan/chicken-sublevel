@@ -1,11 +1,9 @@
-;(compile -s "sublevel.scm" -Iinclude -c++)
-
-(compile -O2 -d1 -s "sublevel.scm" -Iinclude -j "sublevel" -c++)
+(compile -O2 -d1 -s "sublevel.scm" -Iinclude -j "sublevel")
 (compile -O2 -d0 -s "sublevel.import.scm")
-(compile -O2 -d1 -c "sublevel.scm" -Iinclude -unit "sublevel" -o "sublevel-static.o" -c++)
+(compile -O2 -d1 -c "sublevel.scm" -Iinclude -unit "sublevel" -o "sublevel-static.o")
 
 (install-extension
   'sublevel
   '("sublevel.so" "sublevel.import.so" "sublevel-static.o")
-  '((version "3.5.3")
+  '((version "2.0.0")
     (static "sublevel-static.o")))
