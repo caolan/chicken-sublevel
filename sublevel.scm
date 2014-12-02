@@ -7,6 +7,7 @@
          sublevel-split-key
          expand-sublevels
          multilevel-expand
+         multilevel-batch
          )
 
 (import utf8 scheme chicken)
@@ -167,5 +168,11 @@
      (append
        (expand-sublevels db s1 o1)
        (multilevel-expand db (s2 o2) ...)))))
+
+(define-syntax multilevel-batch
+  (syntax-rules ()
+    ((_ db) '())
+    ((_ db (s1 o1) (s2 o2) ...)
+     (db-batch db (multilevel-expand db (s1 o1) (s2 o2) ...)))))
 
 )
