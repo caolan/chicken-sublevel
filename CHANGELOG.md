@@ -1,3 +1,7 @@
+## 3.0.0
+
+- update to latest level egg api (v2.0.0)
+
 ## 2.0.0
 
 - expand-sublevels now requires a 'root' argument to expand up until
