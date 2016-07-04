@@ -39,18 +39,6 @@
         key)))
   (without-prefix prefix (key->list key)))
 
-(define (process-stream key value prefix seq)
-  (lazy-map
-    (lambda (x)
-      (process-stream-item key value prefix x))
-    seq))
-
-(define (process-stream-item key value prefix x)
-  (cond ((and key value)
-         (let ((k (key->list (car x))) (v (cdr x)))
-           (cons (remove-prefix prefix k) v)))
-        (key (remove-prefix prefix (key->list x)))
-        (value x)))
 
 (define (make-startkey prefix start #!key (reverse #f))
   (if (null? prefix)
@@ -122,20 +110,49 @@
                 (map (cut convert-key (sublevel-prefix resource) <>) ops)
                 sync: sync))
 
-    (define (level-stream resource #!key start end limit reverse
-                          (key #t) (value #t) fillcache)
+    (define (level-keys resource #!key start end limit reverse fillcache)
       (let* ((prefix (sublevel-prefix resource))
              (start2 (make-startkey prefix start reverse: reverse))
              (end2 (make-endkey prefix end reverse: reverse)))
-        (process-stream key value prefix
-          (db-stream (sublevel-db resource)
-                     start: start2
-                     end: end2
-                     limit: limit
-                     reverse: reverse
-                     key: key
-                     value: value
-                     fillcache: fillcache))))))
+        (lazy-map
+         (lambda (x)
+           (remove-prefix prefix (key->list x)))
+         (db-keys (sublevel-db resource)
+                  start: start2
+                  end: end2
+                  limit: limit
+                  reverse: reverse
+                  fillcache: fillcache))))
+
+    (define (level-values resource #!key start end limit reverse fillcache)
+      (let* ((prefix (sublevel-prefix resource))
+             (start2 (make-startkey prefix start reverse: reverse))
+             (end2 (make-endkey prefix end reverse: reverse)))
+        (db-values (sublevel-db resource)
+                   start: start2
+                   end: end2
+                   limit: limit
+                   reverse: reverse
+                   fillcache: fillcache)))
+
+    (define (level-pairs resource #!key start end limit reverse fillcache)
+      (let* ((prefix (sublevel-prefix resource))
+             (start2 (make-startkey prefix start reverse: reverse))
+             (end2 (make-endkey prefix end reverse: reverse)))
+        (lazy-map
+         (lambda (x)
+           (let ((k (key->list (car x)))
+                 (v (cdr x)))
+             (cons (remove-prefix prefix k) v)))
+          (db-pairs (sublevel-db resource)
+                    start: start2
+                    end: end2
+                    limit: limit
+                    reverse: reverse
+                    fillcache: fillcache))))
+
+
+    ))
 
 (define (sublevel db prefix)
   (make-level 'sublevel

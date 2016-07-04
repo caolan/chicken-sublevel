@@ -45,13 +45,13 @@
                   (put "zzz" "000")))
   (test "get all keys inside prefix"
         '(("abc" . "123") ("def" . "456") ("ghi" . "789") ("zzz" . "000"))
-        (lazy-seq->list (db-stream db4)))
+        (lazy-seq->list (db-pairs db4)))
   (test "get limited keys inside prefix"
         '(("abc" . "123") ("def" . "456"))
-        (lazy-seq->list (db-stream db4 limit: 2)))
+        (lazy-seq->list (db-pairs db4 limit: 2)))
   (test "get range of keys inside prefix"
         '(("abc" . "123") ("def" . "456"))
-        (lazy-seq->list (db-stream db4 start: "a" end: "g")))
+        (lazy-seq->list (db-pairs db4 start: "a" end: "g")))
   (test "get all keys outsdie prefix"
         '(("four\x00abc" . "123")
           ("four\x00def" . "456")
@@ -59,27 +59,27 @@
           ("four\x00zzz" . "000")
           ("three\x00one" . "foo")
           ("three\x00three" . "baz"))
-        (lazy-seq->list (db-stream db)))
+        (lazy-seq->list (db-pairs db)))
   (test "get limited keys outside prefix"
         '(("four\x00abc" . "123")
           ("four\x00def" . "456"))
-        (lazy-seq->list (db-stream db limit: 2)))
+        (lazy-seq->list (db-pairs db limit: 2)))
   (test "get range of keys outside prefix"
         '(("four\x00abc" . "123")
           ("four\x00def" . "456"))
-        (lazy-seq->list (db-stream db start: "four\x00a" end: "four\x00g")))
+        (lazy-seq->list (db-pairs db start: "four\x00a" end: "four\x00g")))
   (test "get key only results from stream"
         '("abc" "def" "ghi" "zzz")
-        (lazy-seq->list (db-stream db4 key: #t value: #f)))
+        (lazy-seq->list (db-keys db4)))
   (test "get value only results from stream"
         '("123" "456" "789" "000")
-        (lazy-seq->list (db-stream db4 key: #f value: #t)))
+        (lazy-seq->list (db-values db4)))
   (test "get all keys inside prefix reversed"
         '(("zzz" . "000") ("ghi" . "789") ("def" . "456") ("abc" . "123"))
-        (lazy-seq->list (db-stream db4 reverse: #t)))
+        (lazy-seq->list (db-pairs db4 reverse: #t)))
   (test "get range of keys inside prefix reversed"
         '(("ghi" . "789") ("def" . "456"))
-        (lazy-seq->list (db-stream db4 reverse: #t start: "gxx" end: "d"))))
+        (lazy-seq->list (db-pairs db4 reverse: #t start: "gxx" end: "d"))))
 
 (test-group "expand-sublevels"
   (define db1 (sublevel db '("one")))
