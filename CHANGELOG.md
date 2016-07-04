@@ -1,3 +1,7 @@
+## 4.0.0
+
+- update to latest level egg api (v3.0.0)
+
 ## 3.0.0
 
 - update to latest level egg api (v2.0.0)
